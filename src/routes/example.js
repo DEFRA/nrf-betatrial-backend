@@ -8,7 +8,7 @@ const example = [
     handler: async (request, h) => {
       // const entities = await findAllExampleData(request.db)
       const entities = {}
-      const result = await publishToQueue({message: 'Hello 123'})
+      const result = await publishToQueue({ message: 'Hello 123' })
 
       return h.response({ message: 'success', entities, result })
     }

@@ -61,7 +61,7 @@ async function createServer() {
     router
   ])
 
-  const consumer = createSqsConsumer({ handleMessage: worker})
+  const consumer = createSqsConsumer({ handleMessage: worker })
 
   // Start SQS consumer after server is up
   server.ext('onPostStart', async () => {
