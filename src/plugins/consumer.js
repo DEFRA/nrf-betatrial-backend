@@ -1,0 +1,91 @@
+import { config } from "../config.js";
+import {
+  SQSClient,
+  GetQueueUrlCommand,
+  ReceiveMessageCommand,
+  DeleteMessageCommand,
+} from "@aws-sdk/client-sqs";
+
+const sqs = new SQSClient()
+
+// Exported state for healthcheck
+export const sqsState = {
+  running: false,
+  lastPollAt: null,
+  lastMessageAt: null,
+  lastError: null,
+};
+
+async function pollQueue({ handleMessage, stopSignal }) {
+  const command = new GetQueueUrlCommand({QueueName: 'quote_request'});
+  const queueUrl = await sqs.send(command);
+
+  sqsState.running = true;
+
+  while (!stopSignal.stop) {
+    try {
+      sqsState.lastPollAt = new Date();
+
+      const resp = await sqs.send(
+        new ReceiveMessageCommand({
+          QueueUrl: queueUrl,
+          MaxNumberOfMessages: 10,
+          WaitTimeSeconds: 20,
+          VisibilityTimeout: 60,
+        }),
+      );
+
+      const messages = resp.Messages ?? [];
+
+      if (messages.length === 0) {
+        continue;
+      }
+
+      for (const msg of messages) {
+        try {
+          sqsState.lastMessageAt = new Date();
+
+          await handleMessage(msg);
+
+          await sqs.send(
+            new DeleteMessageCommand({
+              QueueUrl: queueUrl,
+              ReceiptHandle: msg.ReceiptHandle,
+            }),
+          );
+        } catch (err) {
+          console.error("[SQS] Error processing message", err);
+          sqsState.lastError = err.message ?? String(err);
+          // Do not delete; message will become visible again after visibility timeout
+        }
+      }
+    } catch (err) {
+      console.error("[SQS] Error receiving messages", err);
+      sqsState.lastError = err.message ?? String(err);
+      // Backoff a bit before retry
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+  }
+
+  sqsState.running = false;
+}
+
+// Factory that creates a consumer controller
+export function createSqsConsumer({ handleMessage }) {
+  const stopSignal = { stop: false };
+
+  const start = async () => {
+    // Fire-and-forget background loop
+    pollQueue({ handleMessage, stopSignal }).catch((err) => {
+      console.error("[SQS] Fatal consumer error", err);
+      sqsState.lastError = err.message ?? String(err);
+      sqsState.running = false;
+    });
+  };
+
+  const stop = async () => {
+    stopSignal.stop = true;
+  };
+
+  return { start, stop };
+}

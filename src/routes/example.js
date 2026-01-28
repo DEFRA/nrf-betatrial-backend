@@ -1,5 +1,5 @@
 import Boom from '@hapi/boom'
-import { findAllExampleData, findExampleData } from '../example-find.js'
+import { publishToQueue } from "../plugins/publisher.js";
 
 const example = [
   {
@@ -7,7 +7,9 @@ const example = [
     path: '/example',
     handler: async (request, h) => {
       const entities = await findAllExampleData(request.db)
-      return h.response({ message: 'success', entities })
+      const result = await publishToQueue('Hello 123')
+
+      return h.response({ message: 'success', entities, result })
     }
   },
   {
