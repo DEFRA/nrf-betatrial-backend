@@ -11,8 +11,8 @@ import { pulse } from './common/helpers/pulse.js'
 import { requestTracing } from './common/helpers/request-tracing.js'
 import { setupProxy } from './common/helpers/proxy/setup-proxy.js'
 
-import { createSqsConsumer, sqsState } from "./plugins/consumer.js";
-import { worker } from "./worker/worker.js";
+import { createSqsConsumer } from './plugins/consumer.js'
+import { worker } from './worker/worker.js'
 
 async function createServer() {
   setupProxy()
@@ -61,19 +61,19 @@ async function createServer() {
     router
   ])
 
-  const consumer = createSqsConsumer(worker)
+  const consumer = createSqsConsumer({ handleMessage: worker})
 
   // Start SQS consumer after server is up
-  server.ext("onPostStart", async () => {
-    console.log("[Worker] Starting SQS consumer")
+  server.ext('onPostStart', async () => {
+    console.log('[Worker] Starting SQS consumer')
     await consumer.start()
-  });
+  })
 
   // Stop SQS consumer gracefully before server stops
-  server.ext("onPreStop", async () => {
-    console.log("[Worker] Stopping SQS consumer")
+  server.ext('onPreStop', async () => {
+    console.log('[Worker] Stopping SQS consumer')
     await consumer.stop()
-  });
+  })
 
   return server
 }

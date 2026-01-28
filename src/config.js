@@ -132,6 +132,18 @@ const config = convict({
       default: 'x-cdp-request-id',
       env: 'TRACING_HEADER'
     }
+  },
+  awsRegion: {
+    doc: 'AWS Region',
+    format: String,
+    default: 'eu-west-2',
+    env: 'AWS_REGION'
+  },
+  sqsEndpoint: {
+    doc: 'SQS Endpoint URL',
+    format: String,
+    default: 'https://sqs.eu-west-2.amazonaws.com',
+    env: 'SQS_ENDPOINT'
   }
 })
 
