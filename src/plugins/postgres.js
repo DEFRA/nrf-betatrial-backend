@@ -46,9 +46,7 @@ export const postgres = {
         })
       })
 
-      server.logger.info(
-        `Postgres connected to database '${options.database}'`
-      )
+      server.logger.info(`Postgres connected to database '${options.database}'`)
 
       server.decorate('server', 'pg', pool)
       server.decorate('request', 'pg', pool)

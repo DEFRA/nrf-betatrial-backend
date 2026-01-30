@@ -1,8 +1,11 @@
 import { parentPort, workerData } from 'worker_threads'
+import { createLogger } from '../common/helpers/logging/logger.js'
 
 function doHeavyComputation(payload) {
+  const logger = createLogger()
   const body = JSON.parse(payload.Body)
-  console.log('[SQS] Processing message:', body)
+  logger.info('[SQS] Processing message: ')
+  logger.info(body)
 
   // Example: simulate heavy CPU work for ~7 seconds
   const end = Date.now() + 7_000
@@ -12,7 +15,8 @@ function doHeavyComputation(payload) {
     x += Math.sqrt(Math.random()) * Math.random()
   }
 
-  console.log('[SQS] Processed message:',  {
+  logger.info('[SQS] Processed message: ')
+  logger.info({
     input: payload,
     result: x,
     finishedAt: new Date().toISOString()

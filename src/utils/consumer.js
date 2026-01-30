@@ -5,11 +5,13 @@ import {
   ReceiveMessageCommand,
   DeleteMessageCommand
 } from '@aws-sdk/client-sqs'
+import { createLogger } from '../common/helpers/logging/logger.js'
 
 const sqs = new SQSClient({
   region: config.get('awsRegion'),
   endpoint: config.get('sqsEndpoint')
 })
+const logger = createLogger()
 
 // Exported state for healthcheck
 export const sqsState = {
@@ -34,8 +36,8 @@ async function pollQueue({ handleMessage, stopSignal }) {
         new ReceiveMessageCommand({
           QueueUrl: queueUrl,
           MaxNumberOfMessages: 1, // 1 message at a time
-          WaitTimeSeconds: 20,    // long polling
-          VisibilityTimeout: 120  // give worker enough time
+          WaitTimeSeconds: 20, // long polling
+          VisibilityTimeout: 120 // give worker enough time
         })
       )
 
@@ -59,13 +61,13 @@ async function pollQueue({ handleMessage, stopSignal }) {
             })
           )
         } catch (err) {
-          console.error('[SQS] Error processing message', err)
+          logger.error('[SQS] Error processing message', err)
           sqsState.lastError = err.message ?? String(err)
           // Do not delete; message will become visible again after visibility timeout
         }
       }
     } catch (err) {
-      console.error('[SQS] Error receiving messages', err)
+      logger.error('[SQS] Error receiving messages', err)
       sqsState.lastError = err.message ?? String(err)
       // Backoff a bit before retry
       await new Promise((resolve) => setTimeout(resolve, 5000))
@@ -82,7 +84,8 @@ export function createSqsConsumer({ handleMessage }) {
   const start = async () => {
     // Fire-and-forget background loop
     pollQueue({ handleMessage, stopSignal }).catch((err) => {
-      console.error('[SQS] Fatal consumer error', err)
+      logger.error('[SQS] Fatal consumer error')
+      logger.error(err)
       sqsState.lastError = err.message ?? String(err)
       sqsState.running = false
     })
