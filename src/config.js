@@ -112,6 +112,44 @@ const config = convict({
       }
     }
   },
+  postgres: {
+    host: {
+      doc: 'Postgres host',
+      format: String,
+      default: 'localhost',
+      env: 'POSTGRES_HOST'
+    },
+    port: {
+      doc: 'Postgres port',
+      format: 'port',
+      default: 5432,
+      env: 'POSTGRES_PORT'
+    },
+    user: {
+      doc: 'Postgres user',
+      format: String,
+      default: 'postgres',
+      env: 'POSTGRES_USER'
+    },
+    database: {
+      doc: 'Postgres database',
+      format: String,
+      default: 'nrf_betatrial_backend',
+      env: 'POSTGRES_DB'
+    },
+    iamAuthentication: {
+      doc: 'Use AWS IAM authentication for Postgres',
+      format: Boolean,
+      default: isProduction,
+      env: 'POSTGRES_IAM_AUTHENTICATION'
+    },
+    localPassword: {
+      doc: 'Local Postgres password (used when IAM authentication is disabled)',
+      format: String,
+      default: 'postgres',
+      env: 'POSTGRES_PASSWORD'
+    }
+  },
   httpProxy: {
     doc: 'HTTP Proxy URL',
     format: String,

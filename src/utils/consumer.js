@@ -20,6 +20,7 @@ export const sqsState = {
 }
 
 async function pollQueue({ handleMessage, stopSignal }) {
+  // Resolve the queue URL once at startup
   const command = new GetQueueUrlCommand({ QueueName: 'quote_request' })
   const queueUrl = (await sqs.send(command)).QueueUrl
 
@@ -32,9 +33,9 @@ async function pollQueue({ handleMessage, stopSignal }) {
       const resp = await sqs.send(
         new ReceiveMessageCommand({
           QueueUrl: queueUrl,
-          MaxNumberOfMessages: 1,
-          WaitTimeSeconds: 20,
-          VisibilityTimeout: 60
+          MaxNumberOfMessages: 1, // 1 message at a time
+          WaitTimeSeconds: 20,    // long polling
+          VisibilityTimeout: 120  // give worker enough time
         })
       )
 
@@ -48,6 +49,7 @@ async function pollQueue({ handleMessage, stopSignal }) {
         try {
           sqsState.lastMessageAt = new Date()
 
+          // Your heavy work (via worker thread) will be inside handleMessage
           await handleMessage(msg)
 
           await sqs.send(

@@ -6,12 +6,13 @@ import { config } from './config.js'
 import { router } from './plugins/router.js'
 import { requestLogger } from './common/helpers/logging/request-logger.js'
 import { mongoDb } from './common/helpers/mongodb.js'
+import { postgres } from './plugins/postgres.js'
 import { failAction } from './common/helpers/fail-action.js'
 import { pulse } from './common/helpers/pulse.js'
 import { requestTracing } from './common/helpers/request-tracing.js'
 import { setupProxy } from './common/helpers/proxy/setup-proxy.js'
 
-import { createSqsConsumer } from './plugins/consumer.js'
+import { createSqsConsumer } from './utils/consumer.js'
 import { worker } from './worker/worker.js'
 
 async function createServer() {
@@ -57,6 +58,10 @@ async function createServer() {
     {
       plugin: mongoDb,
       options: config.get('mongo')
+    },
+    {
+      plugin: postgres,
+      options: config.get('postgres')
     },
     router
   ])
