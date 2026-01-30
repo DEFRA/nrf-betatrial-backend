@@ -5,7 +5,7 @@ function doHeavyComputation(payload) {
   const logger = createLogger()
   const body = JSON.parse(payload.Body)
   logger.info('[SQS] Processing message: ')
-  logger.info(body)
+  logger.info(JSON.stringify(body))
 
   // Example: simulate heavy CPU work for ~7 seconds
   const end = Date.now() + 7_000
@@ -16,11 +16,13 @@ function doHeavyComputation(payload) {
   }
 
   logger.info('[SQS] Processed message: ')
-  logger.info({
-    input: payload,
-    result: x,
-    finishedAt: new Date().toISOString()
-  })
+  logger.info(
+    JSON.stringify({
+      input: payload,
+      result: x,
+      finishedAt: new Date().toISOString()
+    })
+  )
 
   return {
     input: payload,

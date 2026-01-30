@@ -61,13 +61,15 @@ async function pollQueue({ handleMessage, stopSignal }) {
             })
           )
         } catch (err) {
-          logger.error('[SQS] Error processing message', err)
+          logger.error('[SQS] Error processing message')
+          logger.error(JSON.stringify(err))
           sqsState.lastError = err.message ?? String(err)
           // Do not delete; message will become visible again after visibility timeout
         }
       }
     } catch (err) {
-      logger.error('[SQS] Error receiving messages', err)
+      logger.error('[SQS] Error receiving messages')
+      logger.error(JSON.stringify(err))
       sqsState.lastError = err.message ?? String(err)
       // Backoff a bit before retry
       await new Promise((resolve) => setTimeout(resolve, 5000))
@@ -85,7 +87,7 @@ export function createSqsConsumer({ handleMessage }) {
     // Fire-and-forget background loop
     pollQueue({ handleMessage, stopSignal }).catch((err) => {
       logger.error('[SQS] Fatal consumer error')
-      logger.error(err)
+      logger.error(JSON.stringify(err))
       sqsState.lastError = err.message ?? String(err)
       sqsState.running = false
     })
