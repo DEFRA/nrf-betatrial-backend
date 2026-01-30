@@ -7,8 +7,8 @@ function doHeavyComputation(payload) {
   logger.info('[SQS] Processing message: ')
   logger.info(JSON.stringify(body))
 
-  // Example: simulate heavy CPU work for ~7 seconds
-  const end = Date.now() + 7_000
+  // Example: simulate heavy CPU work for ~60 seconds
+  const end = Date.now() + 60_000
   let x = 0
 
   while (Date.now() < end) {
